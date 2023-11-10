@@ -20,7 +20,6 @@ The structure of this project is described in [project_structure.md](project_str
 One way is to set up the environment with docker. See [this](https://github.com/zju3dv/clean-pvnet/tree/master/docker).
 
 Thanks **Floris Gaisser** for providing the docker implementation.
-
 Another way is to use the following commands.
 
 1. Set up the python environment:
@@ -123,7 +122,7 @@ We provide the pretrained models of objects on Tless, which can be found at [her
 ### Demo
 
 ```
-python run.py --type demo --cfg_file configs/linemod.yaml demo_path demo_images/cat
+python run.py --type demo --cfg_file configs/linemod.yaml demo_path demo_images/cat model/cat
 ```
 
 ### Visualization on Linemod
@@ -195,6 +194,15 @@ If setup correctly, the output will look like
 
 
 ## Training on the custom object
+### From 3dome rendered imaged
+In case you want to generate a dataset from 3dome rendered images:
+```
+python 3dome_data_generator/create_synth_dataset --conf path/to/camera/conf --mesh path/to/mesh --images path/to/images
+--bkgs path/to/bkgs/images --out path/to/output/folder
+```
+Remember that the camera configuration file must contain the camera parameters for each image supplied.
+The result of the script should be a dataset which follow the structure described below.
+
 
 An example dataset can be downloaded at [here](https://drive.google.com/drive/folders/1nxGbqO2AYnHekatPZLgdFNahNwSErSoq?usp=sharing).
 
