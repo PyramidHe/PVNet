@@ -122,7 +122,7 @@ We provide the pretrained models of objects on Tless, which can be found at [her
 ### Demo
 
 ```
-python run.py --type demo --cfg_file configs/linemod.yaml demo_path demo_images/cat model/cat
+python run.py --type demo --cfg_file configs/linemod.yaml demo_path demo_images/cat model cat
 ```
 
 ### Visualization on Linemod
