@@ -103,7 +103,7 @@ parser.add_argument('--images', type=str, required=True, help='path to folder co
 parser.add_argument('--out', type=str, required=True, help='path to folder containing processed dataset')
 parser.add_argument('--bkgs', type=str, required=True, help='path to folder containing background images')
 parser.add_argument('--resolution', default='640x480', help='resolution')
-parser.add_argument('--num_out_images', type=int, default=1500, help='resolution')
+parser.add_argument('--num_out_images', type=int, default=1500, help='number of output images')
 
 
 args = parser.parse_args()
