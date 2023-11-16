@@ -194,7 +194,7 @@ If setup correctly, the output will look like
 
 
 ## Training on the custom object
-### From 3dome rendered imaged
+### From 3dome rendered images
 In case you want to generate a dataset from 3dome rendered images:
 ```
 python 3dome_data_generator/create_synth_dataset --conf path/to/camera/conf --mesh path/to/mesh --images path/to/images

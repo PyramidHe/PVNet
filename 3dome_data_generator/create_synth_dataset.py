@@ -8,11 +8,13 @@ import os
 import shutil
 import random
 import cv2
-
+import open3d as o3d
+from tqdm import tqdm
 from mask_gen import generate_masks_from_mesh
 
 
-def create_naive_dataset(images, masks, bkgs, poses, camera, width, height, out, image_ext='.jpg', mask_ext='.png'):
+def create_naive_dataset(images, masks, bkgs, poses, camera, width, height, out, num_out_images=1500,
+                         image_ext='.jpg', mask_ext='.png'):
 
     to_tensor = transforms.ToTensor()
     transforms_to_apply = torch.nn.Sequential(
@@ -67,8 +69,7 @@ def create_naive_dataset(images, masks, bkgs, poses, camera, width, height, out,
     camera[1, :] = camera[1, :] * height / image.shape[1]
     np.savetxt(os.path.join(out, 'camera.txt'), camera)
 
-    for index in range(1500):
-        print(index)
+    for index in tqdm(range(num_out_images)):
         image = Image.open(image_list[index % len(image_list)])
         mask = Image.open(mask_list[index % len(image_list)])
         image = to_tensor(image)
@@ -89,7 +90,6 @@ def create_naive_dataset(images, masks, bkgs, poses, camera, width, height, out,
         mask_to_save = (mask.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
         cv2.imwrite(os.path.join(out_imgs, str(index) + image_ext), image_to_save)
         cv2.imwrite(os.path.join(out_masks,  str(index) + mask_ext), mask_to_save)
-        #shutil.copy(poses_list[index % len(image_list)], os.path.join(out_poses, 'pose' + str(index) + '.npy'))
         np.save(os.path.join(out_poses, 'pose' + str(index) + '.npy'), pose)
 
     return
@@ -99,10 +99,11 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--conf', type=str, required=True, help='camera configuration file')
 parser.add_argument('--mesh', type=str, required=True, help='mesh file')
-parser.add_argument('--images', type=str, required=True, help='path to folder containing masked training imaged')
+parser.add_argument('--images', type=str, required=True, help='path to folder containing masked training images')
 parser.add_argument('--out', type=str, required=True, help='path to folder containing processed dataset')
 parser.add_argument('--bkgs', type=str, required=True, help='path to folder containing background images')
 parser.add_argument('--resolution', default='640x480', help='resolution')
+parser.add_argument('--num_out_images', type=int, default=1500, help='resolution')
 
 
 args = parser.parse_args()
@@ -111,8 +112,10 @@ if __name__ == '__main__':
     width, height = args.resolution.split("x")
     width, height = int(width), int(height)
     generate_masks_from_mesh(args.conf, args.mesh, 'tmp')
+    mesh = o3d.io.read_triangle_mesh(args.mesh)
+    o3d.io.write_triangle_mesh(os.path.join(args.out, 'model.ply'), mesh, write_ascii=True)
     create_naive_dataset(args.images, os.path.join('tmp', 'mask'), args.bkgs, os.path.join('tmp', 'pose'),
-                         os.path.join('tmp', 'camera.txt'), width, height, args.out)
+                         os.path.join('tmp', 'camera.txt'), width, height, args.out, args.num_out_images)
     shutil.rmtree('tmp')
 
 
