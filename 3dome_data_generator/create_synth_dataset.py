@@ -19,7 +19,7 @@ def create_naive_dataset(images, masks, bkgs, poses, camera, width, height, out,
     to_tensor = transforms.ToTensor()
     transforms_to_apply = torch.nn.Sequential(
         transforms.Grayscale(3),
-        transforms.Resize((height, width)),
+        transforms.Resize((height, width), antialias=True),
         transforms.GaussianBlur(5, sigma=(0.5, 2.0)),
         transforms.ColorJitter(.7, .7, .7, 0.5),
         transforms.RandomAutocontrast(),
@@ -27,7 +27,7 @@ def create_naive_dataset(images, masks, bkgs, poses, camera, width, height, out,
     )
 
     resizer = torch.nn.Sequential(
-        transforms.Resize((height, width)),
+        transforms.Resize((height, width), antialias=True),
     )
     image_list = []
     mask_list = []
@@ -113,9 +113,10 @@ if __name__ == '__main__':
     width, height = int(width), int(height)
     generate_masks_from_mesh(args.conf, args.mesh, 'tmp')
     mesh = o3d.io.read_triangle_mesh(args.mesh)
-    o3d.io.write_triangle_mesh(os.path.join(args.out, 'model.ply'), mesh, write_ascii=True)
+    print('Generating augmented dataset')
     create_naive_dataset(args.images, os.path.join('tmp', 'mask'), args.bkgs, os.path.join('tmp', 'pose'),
                          os.path.join('tmp', 'camera.txt'), width, height, args.out, args.num_out_images)
+    o3d.io.write_triangle_mesh(os.path.join(args.out, 'model.ply'), mesh, write_ascii=True)
     shutil.rmtree('tmp')
 
 
