@@ -273,6 +273,47 @@ def run_demo():
         visualizer.visualize_demo(output, inp, meta)
 
 
+def run_from_camera():
+    from lib.datasets import make_data_loader
+    from lib.visualizers import make_visualizer
+    import tqdm
+    import torch
+    from lib.networks import make_network
+    from lib.utils.net_utils import load_network
+    import glob
+    from PIL import Image
+    import cv2
+
+    torch.manual_seed(0)
+    meta = np.load(os.path.join(cfg.demo_path, 'meta.npy'), allow_pickle=True).item()
+    demo_images = glob.glob(cfg.demo_path + '/*jpg')
+
+    network = make_network(cfg).cuda()
+    load_network(network, cfg.model_dir, epoch=cfg.test.epoch)
+    network.eval()
+
+    visualizer = make_visualizer(cfg)
+
+    mean, std = np.array([0.485, 0.456, 0.406]), np.array([0.229, 0.224, 0.225])
+    if args.camera >= 0:
+        cam = cv2.VideoCapture(args.camera)
+        while True:
+            ret, frame = cam.read()
+            frame = cv2.resize(frame, (int(640), int(480)))
+            inp = (((frame / 255.) - mean) / std).transpose(2, 0, 1).astype(np.float32)
+            inp = torch.Tensor(inp[None]).cuda()
+            if ret:
+                with torch.no_grad():
+                    output = network(inp)
+                visualizer.visualize_cv2(output, inp, meta)
+                if cv2.waitKey(25) & 0xFF == ord('q'):
+                    break
+            else:
+                break
+        cam.release()
+        cv2.destroyAllWindows()
+
+
 def run_save_demo():
     from lib.datasets import make_data_loader
     from lib.visualizers import make_visualizer

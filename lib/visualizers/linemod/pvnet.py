@@ -2,6 +2,7 @@ from lib.datasets.dataset_catalog import DatasetCatalog
 from lib.config import cfg
 import pycocotools.coco as coco
 import numpy as np
+import cv2
 from lib.utils.pvnet import pvnet_config
 import matplotlib.pyplot as plt
 from lib.utils import img_utils
@@ -61,6 +62,21 @@ class Visualizer:
         ax.add_patch(patches.Polygon(xy=corner_2d_pred[[0, 1, 3, 2, 0, 4, 6, 2]], fill=False, linewidth=1, edgecolor='b'))
         ax.add_patch(patches.Polygon(xy=corner_2d_pred[[5, 4, 6, 7, 5, 1, 3, 7]], fill=False, linewidth=1, edgecolor='b'))
         plt.show()
+
+    def visualize_cv2(self, output, inp, meta, wait=0):
+        inp = img_utils.unnormalize_img(inp[0], mean, std).permute(1, 2, 0).numpy()
+        kpt_2d = output['kpt_2d'][0].detach().cpu().numpy()
+
+        kpt_3d = np.array(meta['kpt_3d'])
+        K = np.array(meta['K'])
+
+        pose_pred = pvnet_pose_utils.pnp(kpt_3d, kpt_2d, K)
+
+        corner_3d = np.array(meta['corner_3d'])
+        corner_2d_pred = pvnet_pose_utils.project(corner_3d, K, pose_pred).astype(np.int32)
+        image = cv2.polylines(inp, [corner_2d_pred[[0, 1, 3, 2, 0, 4, 6, 2]], corner_2d_pred[[5, 4, 6, 7, 5, 1, 3, 7]]],
+                              isClosed=True, color=(255, 0, 255), thickness=1)
+        cv2.imshow('result', image)
 
     def visualize_train(self, output, batch):
         inp = img_utils.unnormalize_img(batch['inp'][0], mean, std).permute(1, 2, 0)
